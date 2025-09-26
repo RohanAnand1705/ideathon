@@ -4,20 +4,171 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Study Buddy Finder</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        overflow: hidden;
+      }
+
+      /* Floating background circles */
+      .circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        animation: float 6s infinite ease-in-out;
+      }
+      .circle:nth-child(1) {
+        width: 120px;
+        height: 120px;
+        top: 10%;
+        left: 20%;
+      }
+      .circle:nth-child(2) {
+        width: 200px;
+        height: 200px;
+        bottom: 15%;
+        right: 15%;
+        animation-duration: 8s;
+      }
+      .circle:nth-child(3) {
+        width: 80px;
+        height: 80px;
+        bottom: 20%;
+        left: 10%;
+        animation-duration: 5s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+
+      /* Glass card */
+      .container {
+        position: relative;
+        z-index: 1;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(12px);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        width: 90%;
+        max-width: 480px;
+        color: #fff;
+      }
+
+      h1 {
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+      }
+
+      label {
+        font-size: 1rem;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      select,
+      button {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        margin: 0.5rem 0;
+        border-radius: 8px;
+        font-size: 1rem;
+        border: none;
+        outline: none;
+      }
+
+      select {
+        background: #fff;
+        color: #333;
+      }
+
+      button {
+        background: #ff7eb3;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        background: #ff4f8b;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 1.5rem;
+        text-align: left;
+      }
+
+      li {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.8rem 1rem;
+        margin: 0.5rem 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        font-size: 1rem;
+      }
+
+      li::before {
+        content: "👤";
+        margin-right: 8px;
+      }
+
+      /* Loading animation */
+      .loading {
+        font-size: 0.9rem;
+        font-style: italic;
+        animation: blink 1.5s infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
   </head>
   <body>
-    <h1>Find Study Buddies</h1>
+    <!-- Floating shapes -->
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
 
-    <label for="subject">Choose subject:</label>
-    <select id="subject">
-      <option value="PPS">PPS</option>
-      <option value="Chemistry">Chemistry</option>
-      <option value="POE">POE</option>
-      <option value="Math">Math</option>
-    </select>
-    <button onclick="showBuddies()">Find</button>
+    <div class="container">
+      <h1>📚 Study Buddy Finder</h1>
 
-    <ul id="buddyList"></ul>
+      <label for="subject">Choose a subject:</label>
+      <select id="subject">
+        <option value="PPS">PPS</option>
+        <option value="Chemistry">Chemistry</option>
+        <option value="POE">POE</option>
+        <option value="Math">Math</option>
+      </select>
+
+      <button onclick="showBuddies()">Find Buddies</button>
+
+      <ul id="buddyList"></ul>
+    </div>
 
     <script>
       const sheetURL =
@@ -28,16 +179,13 @@
       async function showBuddies() {
         const subject = document.getElementById("subject").value;
         const list = document.getElementById("buddyList");
-        list.innerHTML = "<li>Loading...</li>";
+        list.innerHTML = "<li class='loading'>Loading buddies...</li>";
 
         try {
           const res = await fetch(proxyURL);
           const csvText = await res.text();
 
-          // Parse CSV
           const rows = csvText.split("\n").map((r) => r.split(","));
-
-          // Skip header row (first row)
           const results = rows
             .slice(1)
             .filter((r) => r[2] && r[2].trim() === subject);
@@ -48,7 +196,7 @@
           } else {
             results.forEach((r) => {
               const li = document.createElement("li");
-              li.textContent = r[1]; // column 2 = Name
+              li.textContent = `${r[1]} (${r[2]})`; // Show name + subject
               list.appendChild(li);
             });
           }
